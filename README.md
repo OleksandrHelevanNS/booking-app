@@ -33,7 +33,8 @@ Or the full production image:
 
 ```bash
 docker build -t booking-app .
-docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=default booking-app
+docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=default \
+  -e SPRING_DATASOURCE_URL='jdbc:h2:mem:booking;MODE=PostgreSQL' booking-app
 ```
 
 ## API
