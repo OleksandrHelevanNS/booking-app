@@ -3,16 +3,21 @@ setup: cd src/frontend && npm ci
 
 settings:
   directories:
-    testsUnit: src/backend/src/test/java/
-    testsIntegration: src/backend/src/test/java/
+    testsUnit: src/frontend/tests/unit/
+    testsIntegration: src/frontend/tests/integration/
   toolchain:
-    testFramework: JUnit 5 + Spring Boot Test in src/backend (the frontend has no test runner)
+    testFramework: >-
+      Vitest + React Testing Library in src/frontend (jsdom environment); add vitest,
+      jsdom, @testing-library/react, @testing-library/user-event and
+      @testing-library/jest-dom as devDependencies if they are missing, and a "test"
+      section in vite.config.ts. Backend: JUnit 5 + Spring Boot Test in
+      src/backend/src/test/java/.
     buildCommand: cd src/frontend && npm run build
     lintFixCommand: cd src/frontend && npx oxlint --fix
     lintVerifyCommand: cd src/frontend && npm run lint
     formatFixCommand: ''
     formatVerifyCommand: ''
-    testCommand: cd src/backend && sh ./mvnw -q -Dmaven.repo.local=$NERDS_CACHE_DIR/m2 test
+    testCommand: cd src/frontend && npx vitest run --passWithNoTests
     backendTestCommand: cd src/backend && sh ./mvnw -q -Dmaven.repo.local=$NERDS_CACHE_DIR/m2 test
 
 ci:
@@ -26,6 +31,10 @@ ci:
     - name: frontend build
       run: cd src/frontend && npm run build
       kind: build
+      when: src/frontend/
+    - name: frontend tests
+      run: cd src/frontend && npx vitest run --passWithNoTests
+      kind: test
       when: src/frontend/
     - name: backend tests
       run: cd src/backend && sh ./mvnw -q -Dmaven.repo.local=$NERDS_CACHE_DIR/m2 test
