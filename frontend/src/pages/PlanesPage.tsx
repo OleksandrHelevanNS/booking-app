@@ -1,54 +1,66 @@
-import { useCallback, useEffect, useState } from 'react'
-import { api } from '../api'
-import { useAuth } from '../auth.jsx'
+import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import { api, errorMessage } from '../api'
+import { useAuth } from '../useAuth'
+import type { Plane } from '../types'
 
-const EMPTY = { model: '', registrationNumber: '', capacity: 180, airline: '' }
+/** Form state keeps raw input strings; converted to PlaneRequest on submit. */
+interface PlaneForm {
+  model: string
+  registrationNumber: string
+  capacity: string
+  airline: string
+}
+
+const EMPTY: PlaneForm = { model: '', registrationNumber: '', capacity: '180', airline: '' }
 
 export default function PlanesPage() {
   const { isAdmin } = useAuth()
-  const [planes, setPlanes] = useState([])
-  const [form, setForm] = useState(EMPTY)
-  const [editingId, setEditingId] = useState(null)
+  const [planes, setPlanes] = useState<Plane[]>([])
+  const [form, setForm] = useState<PlaneForm>(EMPTY)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [error, setError] = useState('')
 
-  const load = useCallback(() => api.listPlanes().then(setPlanes).catch((e) => setError(e.message)), [])
+  const load = useCallback(() => {
+    api.listPlanes().then(setPlanes).catch((e: unknown) => setError(errorMessage(e)))
+  }, [])
   useEffect(() => { load() }, [load])
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const set = (k: keyof PlaneForm) => (e: ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [k]: e.target.value })
 
   function reset() {
     setForm(EMPTY)
     setEditingId(null)
   }
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
     const payload = { ...form, capacity: Number(form.capacity) }
     try {
-      if (editingId) await api.updatePlane(editingId, payload)
+      if (editingId !== null) await api.updatePlane(editingId, payload)
       else await api.createPlane(payload)
       reset()
       load()
     } catch (err) {
-      setError(err.message)
+      setError(errorMessage(err))
     }
   }
 
-  async function remove(id) {
+  async function remove(id: number) {
     if (!confirm('Delete this plane?')) return
     setError('')
     try {
       await api.deletePlane(id)
       load()
     } catch (err) {
-      setError(err.message)
+      setError(errorMessage(err))
     }
   }
 
-  function edit(p) {
+  function edit(p: Plane) {
     setEditingId(p.id)
-    setForm({ model: p.model, registrationNumber: p.registrationNumber, capacity: p.capacity, airline: p.airline })
+    setForm({ model: p.model, registrationNumber: p.registrationNumber, capacity: String(p.capacity), airline: p.airline })
   }
 
   return (
@@ -63,8 +75,8 @@ export default function PlanesPage() {
           <label>Capacity<input type="number" min="1" max="1000" value={form.capacity} onChange={set('capacity')} required /></label>
           <label>Airline<input value={form.airline} onChange={set('airline')} required placeholder="UIA" /></label>
           <div className="actions">
-            <button>{editingId ? 'Save' : 'Add plane'}</button>
-            {editingId && <button type="button" className="secondary" onClick={reset}>Cancel</button>}
+            <button>{editingId !== null ? 'Save' : 'Add plane'}</button>
+            {editingId !== null && <button type="button" className="secondary" onClick={reset}>Cancel</button>}
           </div>
         </form>
       ) : (

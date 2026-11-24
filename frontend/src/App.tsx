@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, Navigate, NavLink, Route, Routes } from 'react-router-dom'
 import { api } from './api'
-import { useAuth } from './auth.jsx'
-import AuthPage from './pages/AuthPage.jsx'
-import PlanesPage from './pages/PlanesPage.jsx'
-import TicketsPage from './pages/TicketsPage.jsx'
+import { useAuth } from './useAuth'
+import AuthPage from './pages/AuthPage.tsx'
+import PlanesPage from './pages/PlanesPage.tsx'
+import TicketsPage from './pages/TicketsPage.tsx'
 
 function HealthBadge() {
-  const [status, setStatus] = useState('…')
+  const [status, setStatus] = useState<string>('…')
   useEffect(() => {
     api.health().then((h) => setStatus(h.status)).catch(() => setStatus('DOWN'))
   }, [])
   return <span className={`badge ${status === 'UP' ? 'ok' : 'bad'}`}>API: {status}</span>
 }
 
-function RequireAuth({ children }) {
+function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return <p className="muted">Loading…</p>
   return user ? children : <Navigate to="/login" replace />

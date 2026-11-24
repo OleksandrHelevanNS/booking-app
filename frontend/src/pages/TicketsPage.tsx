@@ -1,62 +1,69 @@
-import { useCallback, useEffect, useState } from 'react'
-import { api } from '../api'
-import { useAuth } from '../auth.jsx'
+import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import { api, errorMessage } from '../api'
+import { useAuth } from '../useAuth'
+import type { Plane, Ticket, TicketRequest } from '../types'
 
-const EMPTY = {
+/** Form state keeps raw input strings; converted to TicketRequest on submit. */
+type TicketForm = { [K in keyof TicketRequest]: string }
+
+const EMPTY: TicketForm = {
   planeId: '', flightNumber: '', origin: '', destination: '',
   departureTime: '', seatNumber: '', passengerName: '', price: '',
 }
 
-const fmt = (iso) => new Date(iso).toLocaleString()
+const fmt = (iso: string) => new Date(iso).toLocaleString()
 
 export default function TicketsPage() {
   const { isAdmin, user } = useAuth()
-  const [tickets, setTickets] = useState([])
-  const [planes, setPlanes] = useState([])
-  const [form, setForm] = useState({ ...EMPTY, passengerName: user?.fullName ?? '' })
-  const [editingId, setEditingId] = useState(null)
+  const emptyForm = useCallback((): TicketForm => ({ ...EMPTY, passengerName: user?.fullName ?? '' }), [user])
+
+  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [planes, setPlanes] = useState<Plane[]>([])
+  const [form, setForm] = useState<TicketForm>(emptyForm)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [error, setError] = useState('')
 
   const load = useCallback(() => {
     Promise.all([api.listTickets(), api.listPlanes()])
       .then(([t, p]) => { setTickets(t); setPlanes(p) })
-      .catch((e) => setError(e.message))
+      .catch((e: unknown) => setError(errorMessage(e)))
   }, [])
   useEffect(() => { load() }, [load])
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const set = (k: keyof TicketForm) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm({ ...form, [k]: e.target.value })
 
   function reset() {
-    setForm({ ...EMPTY, passengerName: user?.fullName ?? '' })
+    setForm(emptyForm())
     setEditingId(null)
   }
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
-    const payload = { ...form, planeId: Number(form.planeId), price: Number(form.price) }
+    const payload: TicketRequest = { ...form, planeId: Number(form.planeId), price: Number(form.price) }
     try {
-      if (editingId) await api.updateTicket(editingId, payload)
+      if (editingId !== null) await api.updateTicket(editingId, payload)
       else await api.createTicket(payload)
       reset()
       load()
     } catch (err) {
-      setError(err.message)
+      setError(errorMessage(err))
     }
   }
 
-  async function remove(id) {
+  async function remove(id: number) {
     if (!confirm('Delete this ticket?')) return
     setError('')
     try {
       await api.deleteTicket(id)
       load()
     } catch (err) {
-      setError(err.message)
+      setError(errorMessage(err))
     }
   }
 
-  function edit(t) {
+  function edit(t: Ticket) {
     setEditingId(t.id)
     setForm({
       planeId: String(t.planeId), flightNumber: t.flightNumber, origin: t.origin, destination: t.destination,
@@ -88,8 +95,8 @@ export default function TicketsPage() {
           <label>Passenger<input value={form.passengerName} onChange={set('passengerName')} required /></label>
           <label>Price<input type="number" min="0" step="0.01" value={form.price} onChange={set('price')} required /></label>
           <div className="actions">
-            <button>{editingId ? 'Save' : 'Book ticket'}</button>
-            {editingId && <button type="button" className="secondary" onClick={reset}>Cancel</button>}
+            <button>{editingId !== null ? 'Save' : 'Book ticket'}</button>
+            {editingId !== null && <button type="button" className="secondary" onClick={reset}>Cancel</button>}
           </div>
         </form>
       )}

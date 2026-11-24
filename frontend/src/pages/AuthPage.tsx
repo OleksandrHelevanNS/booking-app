@@ -1,17 +1,24 @@
-import { useState } from 'react'
+import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../auth.jsx'
+import { errorMessage } from '../api'
+import { useAuth } from '../useAuth'
+import type { RegisterRequest } from '../types'
 
-export default function AuthPage({ mode }) {
+interface Props {
+  mode: 'login' | 'register'
+}
+
+export default function AuthPage({ mode }: Props) {
   const isRegister = mode === 'register'
   const { login, register } = useAuth()
-  const [form, setForm] = useState({ email: '', password: '', fullName: '' })
+  const [form, setForm] = useState<RegisterRequest>({ email: '', password: '', fullName: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const set = (k: keyof RegisterRequest) => (e: ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [k]: e.target.value })
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
     setBusy(true)
@@ -19,7 +26,7 @@ export default function AuthPage({ mode }) {
       if (isRegister) await register(form)
       else await login({ email: form.email, password: form.password })
     } catch (err) {
-      setError(err.message)
+      setError(errorMessage(err))
     } finally {
       setBusy(false)
     }
@@ -38,7 +45,8 @@ export default function AuthPage({ mode }) {
           <input type="email" value={form.email} onChange={set('email')} required autoComplete="email" />
         </label>
         <label>Password
-          <input type="password" value={form.password} onChange={set('password')} required minLength={isRegister ? 6 : undefined}
+          <input type="password" value={form.password} onChange={set('password')} required
+            minLength={isRegister ? 6 : undefined}
             autoComplete={isRegister ? 'new-password' : 'current-password'} />
         </label>
         {error && <p className="error">{error}</p>}
