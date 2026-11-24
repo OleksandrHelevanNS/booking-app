@@ -4,6 +4,7 @@ import { api } from './api'
 import { useAuth } from './useAuth'
 import AuthPage from './pages/AuthPage.tsx'
 import PlanesPage from './pages/PlanesPage.tsx'
+import ProfilePage from './pages/ProfilePage.tsx'
 import TicketsPage from './pages/TicketsPage.tsx'
 
 function HealthBadge() {
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/register" element={user ? <Navigate to="/tickets" replace /> : <AuthPage mode="register" />} />
           <Route path="/tickets" element={<RequireAuth><TicketsPage /></RequireAuth>} />
           <Route path="/planes" element={<RequireAuth><PlanesPage /></RequireAuth>} />
+          <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
           <Route path="*" element={<Navigate to={user ? '/tickets' : '/login'} replace />} />
         </Routes>
       </main>
