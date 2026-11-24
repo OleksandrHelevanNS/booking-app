@@ -1,0 +1,27 @@
+{
+  "id": "JIRA-BA-2",
+  "title": "Add profile page",
+  "description": "name: Profile\nrole: USER, ADMIN",
+  "acceptanceCriteria": [],
+  "priority": "Medium",
+  "storyPoints": null,
+  "labels": [
+    "agent:automation_add-page"
+  ],
+  "dependencies": [],
+  "blockers": [],
+  "source": {
+    "origin": "jira",
+    "externalId": "BA-2",
+    "url": "https://nerdysoft-ai-sdlc-marketplace.atlassian.net/browse/BA-2"
+  },
+  "extra": {
+    "issueType": "Task",
+    "assignee": null,
+    "userStory": "",
+    "kpis": [],
+    "technicalRequirements": [],
+    "nonTechnicalRequirements": []
+  },
+  "createdAt": "2026-11-24T15:56:48.034Z"
+}
