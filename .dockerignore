@@ -2,7 +2,7 @@
 **/dist
 **/target
 **/data
-backend/src/main/resources/static
+src/backend/src/main/resources/static
 .git
 .idea
 .vscode

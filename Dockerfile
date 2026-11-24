@@ -1,18 +1,18 @@
 # --- 1. Build React frontend ---
 FROM node:22-alpine AS frontend
 WORKDIR /app/frontend
-COPY frontend/package*.json ./
+COPY src/frontend/package*.json ./
 RUN npm ci
-COPY frontend/ ./
+COPY src/frontend/ ./
 RUN npm run build
 
 # --- 2. Build Spring Boot backend (frontend bundled as static resources) ---
 FROM eclipse-temurin:21-jdk AS backend
 WORKDIR /app/backend
-COPY backend/.mvn .mvn
-COPY backend/mvnw backend/pom.xml ./
+COPY src/backend/.mvn .mvn
+COPY src/backend/mvnw src/backend/pom.xml ./
 RUN chmod +x mvnw && ./mvnw -q -B dependency:go-offline
-COPY backend/src src
+COPY src/backend/src src
 COPY --from=frontend /app/frontend/dist src/main/resources/static
 RUN ./mvnw -q -B package -DskipTests
 

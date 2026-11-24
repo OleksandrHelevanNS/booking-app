@@ -6,25 +6,25 @@ In production both are shipped as one Docker image: Spring Boot serves the built
 ## Structure
 
 ```
-backend/    Spring Boot API (JPA, Spring Security + JWT)
-frontend/   React + Vite + React Router
+src/backend/    Spring Boot API (JPA, Spring Security + JWT)
+src/frontend/   React + Vite + React Router
 Dockerfile  Multi-stage build: frontend -> backend jar -> JRE runtime
 render.yaml Render Blueprint (web service + Postgres)
 ```
 
 ## Run locally
 
-Backend (uses a file-based H2 database in `backend/data/`):
+Backend (uses a file-based H2 database in `src/backend/data/`):
 
 ```bash
-cd backend
+cd src/backend
 ./mvnw spring-boot:run        # Windows: mvnw.cmd spring-boot:run
 ```
 
 Frontend (dev server on http://localhost:5173, proxies `/api` to :8080):
 
 ```bash
-cd frontend
+cd src/frontend
 npm install
 npm run dev
 ```
